@@ -51,5 +51,15 @@ struct AppView: View {
                     .id(architectureType)
             }
         }
+        
+        Picker("Septomino",
+               selection: $viewModel.septomino) {
+            
+            ForEach(Grid.Triangle.Septomino.allCases, id: \.self) { septomino in
+                
+                Text(septomino.id.capitalized)
+                    .id(septomino)
+            }
+        }
     }
 }

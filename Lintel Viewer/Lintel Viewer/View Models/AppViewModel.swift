@@ -7,6 +7,7 @@
 import Bivouac
 import Euclid
 import Foundation
+import Lintel
 import SceneKit
 
 class AppViewModel: ObservableObject {
@@ -27,10 +28,19 @@ class AppViewModel: ObservableObject {
         }
     }
     
+    @Published var septomino: Grid.Triangle.Septomino = .a {
+        
+        didSet {
+            
+            guard oldValue != septomino else { return }
+            
+            updateScene()
+        }
+    }
+    
     let scene = Scene()
     
-    private var footprint: Grid.Footprint { .init(origin: .zero,
-                                                  area: .rhombus) }
+    private let operationQueue = OperationQueue()
     
     init() {
         
@@ -60,15 +70,45 @@ extension AppViewModel {
     
     private func updateScene() {
         
-        scene.clear()
+        let operation = BuildingMeshOperation(architectureType: architectureType,
+                                              septomino: septomino)
+                
+        operation.enqueue(on: operationQueue) { [weak self] result in
+            
+            guard let self else { return }
+            
+            switch result {
+                
+            case .success(let mesh):
+                
+                self.scene.clear()
+                
+                //self.updateSurface()
+                
+                guard let node = self.createNode(with: mesh) else { return }
+                
+                self.scene.rootNode.addChildNode(node)
+                
+            case .failure(let error):
+                
+                fatalError(error.localizedDescription)
+            }
+        }
+    }
+    
+    private func updateSurface() {
         
         var polygons: [Euclid.Polygon] = []
         
-        for coordinate in footprint.coordinates {
+        for coordinate in septomino.footprint.perimeter {
             
             let triangle = Grid.Triangle(coordinate)
             
-            let vertices = triangle.vertices(for: .tile).map { Vertex($0, .up) }
+            let adjacent = triangle.adjacent.compactMap { septomino.footprint.contains($0) ? $0 : nil }
+            
+            let color = adjacent.isEmpty ? Color.blue : Color.red
+            
+            let vertices = triangle.vertices(for: .tile).map { Vertex($0, .up, nil, color) }
             
             guard let polygon = Polygon(vertices) else { continue }
             

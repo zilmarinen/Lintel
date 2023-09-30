@@ -14,11 +14,14 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "git@github.com:nicklockwood/Euclid.git", branch: "main"),
-                .package(path: "../Bivouac"),
+        .package(url: "git@github.com:3Squared/PeakOperation.git", branch: "develop"),
+        .package(path: "../Bivouac"),
     ],
     targets: [
         .target(
             name: "Lintel",
-            dependencies: ["Bivouac", "Euclid"]),
+            dependencies: ["Bivouac",
+                           "Euclid",
+                           "PeakOperation"]),
     ]
 )
