@@ -38,78 +38,48 @@ public class BuildingMeshOperation: ConcurrentOperation,
                 
             case .success(let classification):
                 
-                var polygons: [Euclid.Polygon] = []
+                let stencil = Grid.Triangle.zero.stencil(for: .tile)
+                let layers = [classification.lower,
+                              classification.upper]
                 
-                let apex = Vector(0.0, 1.0, 0.0)
-                let base = Vector(0.0, -0.1, 0.0)
+                var mesh = Mesh([])
                 
-                for edge in classification.upper.edges {
+                do {
+                
+                    for index in layers.indices {
+                        
+                        let elevation = Vector(0.0, ArchitectureType.apex * Double(index), 0.0)
+                        let layer = layers[index]
+                        
+                        for corner in layer.corners {
+                            
+                            guard let rotation = layer.rotation[corner.key] else { throw MeshError.invalid(corner: corner.value) }
+                            
+                            mesh = mesh.union(try self.corner(coordinate: corner.key,
+                                                              corner: corner.value,
+                                                              elevation: elevation,
+                                                              rotation: rotation,
+                                                              stencil: stencil))
+                        }
+                        
+                        for edge in layer.edges {
+                            
+                            guard let rotation = layer.rotation[edge.key] else { throw MeshError.invalid(edge: edge.value) }
+                            
+                            mesh = mesh.union(try self.edge(coordinate: edge.key,
+                                                            edge: edge.value,
+                                                            elevation: elevation,
+                                                            rotation: rotation,
+                                                            stencil: stencil))
+                        }
+                    }
+                }
+                catch {
                     
-                    let triangle = Grid.Triangle(edge.key)
-                    
-                    let vertices = triangle.vertices(for: .tile).map { Vertex($0 + apex, .up, nil, edge.value.color) }
-                    
-                    guard let polygon = Polygon(vertices) else { continue }
-                    
-                    polygons.append(polygon)
+                    self.output = .failure(error)
                 }
                 
-                for corner in classification.upper.corners {
-                    
-                    let triangle = Grid.Triangle(corner.key)
-                    
-                    let vertices = triangle.vertices(for: .tile).map { Vertex($0 + apex, .up, nil, corner.value.color) }
-                    
-                    guard let polygon = Polygon(vertices) else { continue }
-                    
-                    polygons.append(polygon)
-                }
-                
-                for footprint in classification.upper.footprint {
-                    
-                    let triangle = Grid.Triangle(footprint.key)
-                    
-                    let vertices = triangle.vertices(for: .tile).map { Vertex($0 + apex + base, .up, nil, footprint.value.color) }
-                    
-                    guard let polygon = Polygon(vertices) else { continue }
-                    
-                    polygons.append(polygon)
-                }
-                
-                for edge in classification.lower.edges {
-                    
-                    let triangle = Grid.Triangle(edge.key)
-                    
-                    let vertices = triangle.vertices(for: .tile).map { Vertex($0, .up, nil, edge.value.color) }
-                    
-                    guard let polygon = Polygon(vertices) else { continue }
-                    
-                    polygons.append(polygon)
-                }
-                
-                for corner in classification.lower.corners {
-                    
-                    let triangle = Grid.Triangle(corner.key)
-                    
-                    let vertices = triangle.vertices(for: .tile).map { Vertex($0, .up, nil, corner.value.color) }
-                    
-                    guard let polygon = Polygon(vertices) else { continue }
-                    
-                    polygons.append(polygon)
-                }
-                
-                for footprint in classification.lower.footprint {
-                    
-                    let triangle = Grid.Triangle(footprint.key)
-                    
-                    let vertices = triangle.vertices(for: .tile).map { Vertex($0 + base, .up, nil, footprint.value.color) }
-                    
-                    guard let polygon = Polygon(vertices) else { continue }
-                    
-                    polygons.append(polygon)
-                }
-                
-                self.output = .success(Mesh(polygons))
+                self.output = .success(mesh)
                 
             case .failure(let error): fatalError(error.localizedDescription)
             }
@@ -120,5 +90,32 @@ public class BuildingMeshOperation: ConcurrentOperation,
         group.wait()
      
         finish()
+    }
+}
+
+extension BuildingMeshOperation {
+    
+    internal func corner(coordinate: Coordinate,
+                         corner: Classification.Corner,
+                         elevation: Vector,
+                         rotation: Euclid.Rotation,
+                         stencil: Grid.Triangle.Stencil) throws -> Mesh {
+        
+        let mesh = try Grid.Triangle.Corner.mesh(stencil: stencil,
+                                                 colorPalette: architectureType.colorPalette)
+        
+        return mesh.rotated(by: rotation).translated(by: coordinate.convert(to: .tile) + elevation)
+    }
+    
+    internal func edge(coordinate: Coordinate,
+                       edge: Classification.Edge,
+                       elevation: Vector,
+                       rotation: Euclid.Rotation,
+                       stencil: Grid.Triangle.Stencil) throws -> Mesh {
+        
+        let mesh = try Grid.Triangle.Edge.mesh(stencil: stencil,
+                                               colorPalette: architectureType.colorPalette)
+        
+        return mesh.rotated(by: rotation).translated(by: coordinate.convert(to: .tile) + elevation)
     }
 }

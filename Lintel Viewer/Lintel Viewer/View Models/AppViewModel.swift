@@ -83,7 +83,7 @@ extension AppViewModel {
                 
                 self.scene.clear()
                 
-                //self.updateSurface()
+                self.updateSurface()
                 
                 guard let node = self.createNode(with: mesh) else { return }
                 
@@ -104,11 +104,7 @@ extension AppViewModel {
             
             let triangle = Grid.Triangle(coordinate)
             
-            let adjacent = triangle.adjacent.compactMap { septomino.footprint.contains($0) ? $0 : nil }
-            
-            let color = adjacent.isEmpty ? Color.blue : Color.red
-            
-            let vertices = triangle.vertices(for: .tile).map { Vertex($0, .up, nil, color) }
+            let vertices = triangle.vertices(for: .tile).map { Vertex($0, .up, nil, .white) }
             
             guard let polygon = Polygon(vertices) else { continue }
             
