@@ -12,115 +12,6 @@ import PeakOperation
 internal class SeptominoClassificationOperation: ConcurrentOperation,
                                                  ProducesResult {
     
-    internal struct Classification {
-        
-        internal enum Triangle: Int {
-            
-            case one = 1
-            case two = 2
-            case three = 3
-            case four = 4
-            case five = 5
-            
-            internal var color: Color {
-                
-                switch self {
-                    
-                case .one: return .blue
-                case .two: return .magenta
-                case .three: return .gray
-                case .four: return .red
-                case .five: return .green
-                }
-            }
-        }
-        
-        internal enum Vertex: Int {
-            
-            case two = 2
-            case three = 3
-            case four = 4
-            case five = 5
-            case six = 6
-            case seven = 7
-            case eight = 8
-            case nine = 9
-            case ten = 10
-            case twelve = 12
-        }
-        
-        internal enum Corner: Int {
-            
-            case two = 2
-            case three = 3
-            case four = 4
-            case five = 5
-            case six = 6
-            case seven = 7
-            case eight = 8
-            case nine = 9
-            
-            internal var color: Color {
-                
-                switch self {
-                    
-                case .two: return .magenta
-                case .three: return .gray
-                case .four: return .red
-                case .five: return .green
-                case .six: return .blue
-                case .seven: return .orange
-                case .eight: return .yellow
-                case .nine: return .cyan
-                }
-            }
-        }
-        
-        internal enum Edge: Int {
-            
-            case four = 4
-            case five = 5
-            case six = 6
-            case seven = 7
-            case eight = 8
-            case nine = 9
-            case ten = 10
-            case eleven = 11
-            case twleve = 12
-            case thirteen = 13
-            case fourteen = 14
-            
-            internal var color: Color {
-                
-                switch self {
-                    
-                case .four: return .red
-                case .five: return .green
-                case .six: return .blue
-                case .seven: return .orange
-                case .eight: return .yellow
-                case .nine: return .cyan
-                case .ten: return .magenta
-                case .eleven: return .gray
-                case .twleve: return .white
-                case .thirteen: return .black
-                case .fourteen: return .init(210)
-                }
-            }
-        }
-        
-        internal struct Layer {
-            
-            internal let footprint: [Coordinate : Triangle]
-            internal let vertices: [Grid.Vertex : Vertex]
-            internal let corners: [Coordinate: Corner]
-            internal let edges: [Coordinate : Edge]
-        }
-        
-        internal let upper: Layer
-        internal let lower: Layer
-    }
-    
     internal var output: Result<Classification, Error> = Result { throw ResultError.noResult }
     
     private let septomino: Grid.Triangle.Septomino
@@ -151,6 +42,10 @@ internal class SeptominoClassificationOperation: ConcurrentOperation,
             let lowerEdges = try classifyEdges(perimeter: septominoPerimeterBase,
                                                footprint: lowerFootprint,
                                                vertices: lowerVertices)
+            
+            let lowerRotation = try classifyRotation(perimeter: septominoPerimeterBase,
+                                                     footprint: septominoBlueprintBase,
+                                                     vertices: Array(lowerVertices.keys))
             
             //
             //  Remove "end" triangles from lower footprint
@@ -188,19 +83,25 @@ internal class SeptominoClassificationOperation: ConcurrentOperation,
                                                footprint: upperFootprint,
                                                vertices: upperVertices)
             
+            let upperRotation = try classifyRotation(perimeter: septominoPerimeterApex,
+                                                     footprint: septominoBlueprintApex,
+                                                     vertices: Array(upperVertices.keys))
+            
             //
-            //  Combine layers
+            //  Create layers
             //
             
             let lower = Classification.Layer(footprint: lowerFootprint,
                                              vertices: lowerVertices,
                                              corners: lowerCorners,
-                                             edges: lowerEdges)
+                                             edges: lowerEdges,
+                                             rotation: lowerRotation)
             
             let upper = Classification.Layer(footprint: upperFootprint,
                                              vertices: upperVertices,
                                              corners: upperCorners,
-                                             edges: upperEdges)
+                                             edges: upperEdges,
+                                             rotation: upperRotation)
             
             self.output = .success(Classification(upper: upper,
                                                   lower: lower))
@@ -277,7 +178,7 @@ extension SeptominoClassificationOperation {
                                   footprint: [Coordinate : Classification.Triangle],
                                   vertices: [Grid.Vertex : Classification.Vertex]) throws -> [Coordinate : Classification.Corner] {
         
-        return try perimeter.reduce(into: [Coordinate : Classification.Corner]()) { result, coordinate in
+        try perimeter.reduce(into: [Coordinate : Classification.Corner]()) { result, coordinate in
             
             let triangle = Grid.Triangle(coordinate)
             
@@ -287,7 +188,7 @@ extension SeptominoClassificationOperation {
             
             guard let vertex = sharedVertices.first,
                   let value = vertices[vertex],
-                  let classification = Classification.Corner(rawValue: value.rawValue) else { throw ClassificationError.invalidCorner }
+                  let classification = Classification.Corner(rawValue: value.rawValue) else { throw ClassificationError.invalid(corner: triangle) }
             
             result[coordinate] = classification
         }
@@ -297,7 +198,7 @@ extension SeptominoClassificationOperation {
                                 footprint: [Coordinate : Classification.Triangle],
                                 vertices: [Grid.Vertex : Classification.Vertex]) throws -> [Coordinate : Classification.Edge] {
         
-        return try perimeter.reduce(into: [Coordinate : Classification.Edge]()) { result, coordinate in
+        try perimeter.reduce(into: [Coordinate : Classification.Edge]()) { result, coordinate in
             
             let triangle = Grid.Triangle(coordinate)
             
@@ -313,9 +214,56 @@ extension SeptominoClassificationOperation {
                   let v1 = sharedVertices.last,
                   let lhs = vertices[v0],
                   let rhs = vertices[v1],
-                  let classification = Classification.Edge(rawValue: (lhs.rawValue + rhs.rawValue) - neighbour.value.rawValue) else { throw ClassificationError.invalidEdge }
+                  let classification = Classification.Edge(rawValue: (lhs.rawValue + rhs.rawValue) - neighbour.value.rawValue) else { throw ClassificationError.invalid(edge: triangle) }
             
             result[coordinate] = classification
         }
+    }
+    
+    internal func classifyRotation(perimeter: [Coordinate],
+                                   footprint: [Coordinate],
+                                   vertices: [Grid.Vertex]) throws -> [Coordinate : Euclid.Rotation] {
+        
+        try perimeter.reduce(into: [Coordinate : Euclid.Rotation]()) { result, coordinate in
+            
+            let triangle = Grid.Triangle(coordinate)
+            
+            let sharedVertices = triangle.vertices.filter { vertices.contains(Grid.Vertex($0)) }.map { Grid.Vertex($0) }
+            
+            guard let vertex = sharedVertices.first else { throw ClassificationError.invalid(triangle: triangle) }
+            
+            // corners share a single vertex
+            result[coordinate] = sharedVertices.count == 1 ? try classifyCornerRotation(triangle: triangle,
+                                                                                        vertex: vertex) :
+                                                             try classifyEdgeRotation(triangle: triangle,
+                                                                                      footprint: footprint)
+        }
+    }
+    
+    internal func classifyCornerRotation(triangle: Grid.Triangle,
+                                         vertex: Grid.Vertex) throws -> Euclid.Rotation {
+        
+        guard let index = triangle.index(of: vertex),
+              let rotation = Rotation(axis: .up,
+                                      angle: Angle(degrees: triangle.rotation + (Grid.Triangle.stepRotation * Double(-index.rawValue)))) else { throw ClassificationError.invalid(corner: triangle) }
+        
+        return rotation
+    }
+    
+    internal func classifyEdgeRotation(triangle: Grid.Triangle,
+                                       footprint: [Coordinate]) throws -> Euclid.Rotation {
+        
+        for axis in Grid.Axis.allCases {
+            
+            if footprint.contains(triangle.adjacent(along: axis)) {
+                
+                guard let rotation = Rotation(axis: .up,
+                                              angle: Angle(degrees: triangle.rotation + (Grid.Triangle.stepRotation * Double(-axis.rawValue - 1)))) else { throw ClassificationError.invalid(corner: triangle) }
+                
+                return rotation
+            }
+        }
+        
+        throw ClassificationError.invalid(edge: triangle)
     }
 }

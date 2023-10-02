@@ -11,7 +11,7 @@ internal enum ClassificationError: Error {
     
     case invalid(triangle: Grid.Triangle)
     case invalid(vertex: Grid.Vertex)
-    case invalidCorner
-    case invalidEdge
+    case invalid(corner: Grid.Triangle)
+    case invalid(edge: Grid.Triangle)
 }
 
