@@ -17,7 +17,6 @@ extension ArchitectureType {
         case door
         case wall
         case window
-        
     }
 }
 
@@ -27,9 +26,9 @@ extension ArchitectureType {
         
         switch self {
             
-        case .bernina: return .init(primary: .init(.systemGreen), secondary: .init(.systemBrown))
+        case .bernina: return .init(primary: .init(.systemBrown), secondary: .init(.systemGreen))
         case .daisen: return .init(primary: .init(.systemTeal), secondary: .init(.systemGray))
-        case .elna: return .init(primary: .init(.systemGreen), secondary: .init(.systemBrown))
+        case .elna: return .init(primary: .init(.systemOrange), secondary: .init(.systemIndigo))
         case .juki: return .init(primary: .init(.systemGreen), secondary: .init(.systemBrown))
         case .merrow: return .init(primary: .init(.systemGreen), secondary: .init(.systemBrown))
         case .necchi: return .init(primary: .init(.systemGreen), secondary: .init(.systemBrown))

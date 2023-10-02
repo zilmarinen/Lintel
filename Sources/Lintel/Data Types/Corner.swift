@@ -12,10 +12,12 @@ extension Grid.Triangle {
     
     internal enum Corner {
         
-        internal static let vertices: [Stencil.Vertex] = [.v0, .v3, .v4]
+        internal static let vertices: [Stencil.Vertex] = [.v0,
+                                                          .v3,
+                                                          .v4]
         
         internal static func mesh(stencil: Grid.Triangle.Stencil,
-                                  colorPalette: ColorPalette) throws -> Mesh {
+                                  color: Color) throws -> Mesh {
             
             let peak = Vector(0.0, ArchitectureType.apex, 0.0)
             let points = vertices.map { stencil.vertex(for: $0) }
@@ -25,12 +27,12 @@ extension Grid.Triangle {
             let apex = points.map { Euclid.Vertex($0 + peak,
                                                   .up,
                                                   nil,
-                                                  colorPalette.primary) }
+                                                  color) }
             
             let base = points.map { Euclid.Vertex($0,
                                                   -.up,
                                                   nil,
-                                                  colorPalette.primary) }
+                                                  color) }
             
             try polygons.glue(Polygon(apex))
             try polygons.glue(Polygon(base.reversed()))
@@ -48,7 +50,7 @@ extension Grid.Triangle {
                                          v1,
                                          v2,
                                          v3],
-                                        color: colorPalette.primary)
+                                        color: color)
                 
                 try polygons.glue(face?.polygon)
             }

@@ -1,5 +1,5 @@
 //
-//  Wall.swift
+//  Tile.swift
 //
 //  Created by Zack Brown on 02/10/2023.
 //
@@ -10,12 +10,11 @@ import Foundation
 
 extension Grid.Triangle {
     
-    internal enum Edge {
+    internal enum Tile {
         
         internal static let vertices: [Stencil.Vertex] = [.v0,
                                                           .v1,
-                                                          .v12,
-                                                          .v4]
+                                                          .v2]
         
         internal static func mesh(stencil: Grid.Triangle.Stencil,
                                   color: Color) throws -> Mesh {

@@ -10,4 +10,5 @@ internal enum MeshError: Error {
     
     case invalid(corner: Classification.Corner)
     case invalid(edge: Classification.Edge)
+    case invalid(triangle: Classification.Triangle)
 }
