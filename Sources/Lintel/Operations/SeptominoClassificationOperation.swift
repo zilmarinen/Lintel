@@ -15,96 +15,88 @@ internal class SeptominoClassificationOperation: ConcurrentOperation,
     internal var output: Result<Classification, Error> = Result { throw ResultError.noResult }
     
     private let septomino: Grid.Triangle.Septomino
+    private let totalLayers: Int
         
-    internal init(septomino: Grid.Triangle.Septomino) {
+    internal init(septomino: Grid.Triangle.Septomino,
+                  totalLayers: Int = 1) {
         
         self.septomino = septomino
+        self.totalLayers = min(max(totalLayers, 1), 3)
     }
     
     public override func execute() {
         
         do {
             
-            let septominoBlueprintBase = septomino.footprint
-            let septominoPerimeterBase = septominoBlueprintBase.perimeter
+            var footprint = septomino.footprint
             
-            //
-            //  Classify lower floor
-            //
+            var layers: [Classification.Layer] = []
             
-            let lowerFootprint = try classify(footprint: septominoBlueprintBase)
-            let lowerVertices = try classify(vertices: septominoBlueprintBase.vertices)
+            for index in 0..<totalLayers {
+                
+                let threshold = (index * 2) + 2
+                let perimeter = footprint.perimeter
+                
+                let layerFootprint = try classify(footprint: footprint)
+                let layerVertices = try classify(vertices: footprint.vertices)
+                
+                let layerCorners = try classifyCorners(perimeter: perimeter,
+                                                       footprint: layerFootprint,
+                                                       vertices: layerVertices)
+                
+                let layerEdges = try classifyEdges(perimeter: perimeter,
+                                                   footprint: layerFootprint,
+                                                   vertices: layerVertices)
+                
+                let layerRotation = try classifyRotation(perimeter: perimeter,
+                                                         footprint: footprint,
+                                                         vertices: Array(layerVertices.keys))
+                
+                let layer = Classification.Layer(index: index,
+                                                 footprint: layerFootprint,
+                                                 vertices: layerVertices,
+                                                 corners: layerCorners,
+                                                 edges: layerEdges,
+                                                 rotation: layerRotation)
+                
+                guard let foundation = layers.last else {
+                    
+                    layers.append(layer)
+                    
+                    footprint = layerFootprint.keys.filter { layerFootprint[$0]?.rawValue ?? 0 >= threshold }
+                    
+                    continue
+                }
+                
+                let combinedFootprint = try combine(apex: layerFootprint,
+                                                    base: foundation.footprint)
+                
+                let combinedVertices = try combine(apex: layerVertices,
+                                                   base: foundation.vertices)
+                
+                let combinedCorners = try classifyCorners(perimeter: perimeter,
+                                                          footprint: combinedFootprint,
+                                                          vertices: combinedVertices)
+                
+                let combinedEdges = try classifyEdges(perimeter: perimeter,
+                                                      footprint: combinedFootprint,
+                                                      vertices: combinedVertices)
+                
+                let combinedRotation = try classifyRotation(perimeter: perimeter,
+                                                            footprint: Array(combinedFootprint.keys),
+                                                            vertices: Array(combinedVertices.keys))
+                
+                layers.append(Classification.Layer(index: index,
+                                                   footprint: combinedFootprint,
+                                                   vertices: combinedVertices,
+                                                   corners: combinedCorners,
+                                                   edges: combinedEdges,
+                                                   rotation: combinedRotation))
+                
+                footprint = combinedFootprint.keys.filter { combinedFootprint[$0]?.rawValue ?? 0 >= threshold }
+            }
             
-            let lowerCorners = try classifyCorners(perimeter: septominoPerimeterBase,
-                                                   footprint: lowerFootprint,
-                                                   vertices: lowerVertices)
-            
-            let lowerEdges = try classifyEdges(perimeter: septominoPerimeterBase,
-                                               footprint: lowerFootprint,
-                                               vertices: lowerVertices)
-            
-            let lowerRotation = try classifyRotation(perimeter: septominoPerimeterBase,
-                                                     footprint: septominoBlueprintBase,
-                                                     vertices: Array(lowerVertices.keys))
-            
-            //
-            //  Remove "end" triangles from lower footprint
-            //
-            
-            let septominoBlueprintApex = lowerFootprint.keys.filter { lowerFootprint[$0] != .one }
-            let septominoPerimeterApex = septominoBlueprintApex.perimeter
-            
-            //
-            //  Classify upper floor
-            //
-            
-            let apexFootprint = try classify(footprint: septominoBlueprintApex)
-            let apexVertices = try classify(vertices: septominoBlueprintApex.vertices)
-            
-            //
-            //  Combine lower and upper floors
-            //
-            
-            let upperFootprint = try combine(apex: apexFootprint,
-                                             base: lowerFootprint)
-            
-            let upperVertices = try combine(apex: apexVertices,
-                                            base: lowerVertices)
-            
-            //
-            //  Classify merged upper floor
-            //
-            
-            let upperCorners = try classifyCorners(perimeter: septominoPerimeterApex,
-                                                   footprint: upperFootprint,
-                                                   vertices: upperVertices)
-            
-            let upperEdges = try classifyEdges(perimeter: septominoPerimeterApex,
-                                               footprint: upperFootprint,
-                                               vertices: upperVertices)
-            
-            let upperRotation = try classifyRotation(perimeter: septominoPerimeterApex,
-                                                     footprint: septominoBlueprintApex,
-                                                     vertices: Array(upperVertices.keys))
-            
-            //
-            //  Create layers
-            //
-            
-            let lower = Classification.Layer(footprint: lowerFootprint,
-                                             vertices: lowerVertices,
-                                             corners: lowerCorners,
-                                             edges: lowerEdges,
-                                             rotation: lowerRotation)
-            
-            let upper = Classification.Layer(footprint: upperFootprint,
-                                             vertices: upperVertices,
-                                             corners: upperCorners,
-                                             edges: upperEdges,
-                                             rotation: upperRotation)
-            
-            self.output = .success(Classification(upper: upper,
-                                                  lower: lower))
+            self.output = .success(Classification(layers: layers))
         }
         catch {
             

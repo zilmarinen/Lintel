@@ -61,5 +61,15 @@ struct AppView: View {
                     .id(septomino)
             }
         }
+        
+        Picker("Layers",
+               selection: $viewModel.layers) {
+            
+            ForEach(AppViewModel.Layer.allCases, id: \.self) { layer in
+                
+                Text(layer.id.capitalized)
+                    .id(layer)
+            }
+        }
     }
 }

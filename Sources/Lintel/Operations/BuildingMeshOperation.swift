@@ -16,19 +16,23 @@ public class BuildingMeshOperation: ConcurrentOperation,
     
     private let architectureType: ArchitectureType
     private let septomino: Grid.Triangle.Septomino
+    private let totalLayers: Int
         
     public init(architectureType: ArchitectureType,
-                septomino: Grid.Triangle.Septomino) {
+                septomino: Grid.Triangle.Septomino,
+                totalLayers: Int) {
         
         self.architectureType = architectureType
         self.septomino = septomino
+        self.totalLayers = totalLayers
     }
     
     public override func execute() {
         
         let group = DispatchGroup()
         
-        let operation = SeptominoClassificationOperation(septomino: septomino)
+        let operation = SeptominoClassificationOperation(septomino: septomino,
+                                                         totalLayers: totalLayers)
         
         group.enter()
         
@@ -38,58 +42,45 @@ public class BuildingMeshOperation: ConcurrentOperation,
                 
             case .success(let classification):
                 
-                let stencil = Grid.Triangle.zero.stencil(for: .tile)
-                let layers = [classification.lower,
-                              classification.upper]
-                
-                var mesh = Mesh([])
-                
                 do {
+                    
+                    let stencil = Grid.Triangle.zero.stencil(for: .tile)
+                    
+                    var mesh = Mesh([])
                 
-                    for index in layers.indices {
+                    for layer in classification.layers {
                         
-                        let elevation = Vector(0.0, ArchitectureType.apex * Double(index), 0.0)
-                        let layer = layers[index]
+                        let elevation = Vector(0.0, ArchitectureType.apex * Double(layer.index), 0.0)
                         
                         for corner in layer.corners {
-                            
+
                             guard let rotation = layer.rotation[corner.key] else { throw MeshError.invalid(corner: corner.value) }
-                            
+
                             mesh = mesh.union(try self.corner(coordinate: corner.key,
                                                               corner: corner.value,
                                                               elevation: elevation,
                                                               rotation: rotation,
                                                               stencil: stencil))
                         }
-                        
+
                         for edge in layer.edges {
-                            
+
                             guard let rotation = layer.rotation[edge.key] else { throw MeshError.invalid(edge: edge.value) }
-                            
+
                             mesh = mesh.union(try self.edge(coordinate: edge.key,
                                                             edge: edge.value,
                                                             elevation: elevation,
                                                             rotation: rotation,
                                                             stencil: stencil))
                         }
-                        
-                        let tiles = {
-                            
-                            switch index {
-                                
-                            case 0: return layer.footprint.filter { $0.value == .one }
-                                
-                            default: return layer.footprint
-                            }
-                        }()
-                        
-                        for tile in tiles {
-                            
+
+                        for tile in layer.footprint {
+
                             let triangle = Grid.Triangle(tile.key)
-                            
+
                             guard let rotation = Rotation(axis: .up,
                                                           angle: Angle(degrees: triangle.rotation)) else { throw MeshError.invalid(triangle: tile.value) }
-                            
+
                             mesh = mesh.union(try self.tile(coordinate: tile.key,
                                                             triangle: tile.value,
                                                             elevation: elevation,
@@ -97,13 +88,13 @@ public class BuildingMeshOperation: ConcurrentOperation,
                                                             stencil: stencil))
                         }
                     }
+                    
+                    self.output = .success(mesh)
                 }
                 catch {
                     
                     self.output = .failure(error)
                 }
-                
-                self.output = .success(mesh)
                 
             case .failure(let error): fatalError(error.localizedDescription)
             }
@@ -125,8 +116,8 @@ extension BuildingMeshOperation {
                          rotation: Euclid.Rotation,
                          stencil: Grid.Triangle.Stencil) throws -> Mesh {
         
-        let mesh = try Grid.Triangle.Corner.mesh(stencil: stencil,
-                                                 color: architectureType.colorPalette.primary)
+        let mesh = try corner.mesh(stencil: stencil,
+                                   color: architectureType.colorPalette.primary)
         
         return mesh.rotated(by: rotation).translated(by: coordinate.convert(to: .tile) + elevation)
     }
@@ -137,8 +128,8 @@ extension BuildingMeshOperation {
                        rotation: Euclid.Rotation,
                        stencil: Grid.Triangle.Stencil) throws -> Mesh {
         
-        let mesh = try Grid.Triangle.Edge.mesh(stencil: stencil,
-                                               color: architectureType.colorPalette.secondary)
+        let mesh = try edge.mesh(stencil: stencil,
+                                 color: architectureType.colorPalette.secondary)
         
         return mesh.rotated(by: rotation).translated(by: coordinate.convert(to: .tile) + elevation)
     }
@@ -149,8 +140,8 @@ extension BuildingMeshOperation {
                        rotation: Euclid.Rotation,
                        stencil: Grid.Triangle.Stencil) throws -> Mesh {
         
-        let mesh = try Grid.Triangle.Tile.mesh(stencil: stencil,
-                                               color: architectureType.colorPalette.secondary)
+        let mesh = try triangle.mesh(stencil: stencil,
+                                     color: architectureType.colorPalette.secondary)
         
         return mesh.rotated(by: rotation).translated(by: coordinate.convert(to: .tile) + elevation)
     }

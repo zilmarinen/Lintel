@@ -12,10 +12,23 @@ import SceneKit
 
 class AppViewModel: ObservableObject {
     
-    enum Constant {
+    enum Layer: Int,
+                CaseIterable,
+                Identifiable {
         
-        static let cameraY = 1.5
-        static let cameraZ = 1.5
+        case one = 1
+        case two = 2
+        case three = 3
+        
+        var id: String {
+            
+            switch self {
+                
+            case .one: return "One"
+            case .two: return "Two"
+            case .three: return "Three"
+            }
+        }
     }
     
     @Published var architectureType: ArchitectureType = .bernina {
@@ -33,6 +46,16 @@ class AppViewModel: ObservableObject {
         didSet {
             
             guard oldValue != septomino else { return }
+            
+            updateScene()
+        }
+    }
+    
+    @Published var layers: Layer = .two {
+        
+        didSet {
+            
+            guard oldValue != layers else { return }
             
             updateScene()
         }
@@ -71,7 +94,8 @@ extension AppViewModel {
     private func updateScene() {
         
         let operation = BuildingMeshOperation(architectureType: architectureType,
-                                              septomino: septomino)
+                                              septomino: septomino,
+                                              totalLayers: layers.rawValue)
                 
         operation.enqueue(on: operationQueue) { [weak self] result in
             

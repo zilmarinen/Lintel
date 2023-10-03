@@ -10,14 +10,6 @@ import Foundation
 extension ArchitectureType {
     
     public static let apex = Double(Grid.Scale.tile.rawValue)
- 
-    internal enum Face {
-        
-        case corner
-        case door
-        case wall
-        case window
-    }
 }
 
 extension ArchitectureType {

@@ -10,6 +10,21 @@ import Foundation
 
 internal struct Classification {
     
+    internal struct Layer {
+        
+        internal let index: Int
+        internal let footprint: [Coordinate : Triangle]
+        internal let vertices: [Grid.Vertex : Vertex]
+        internal let corners: [Coordinate: Corner]
+        internal let edges: [Coordinate : Edge]
+        internal let rotation: [Coordinate : Euclid.Rotation]
+    }
+    
+    internal let layers: [Layer]
+}
+
+extension Classification {
+    
     internal enum Triangle: Int {
         
         case one = 1
@@ -17,7 +32,22 @@ internal struct Classification {
         case three = 3
         case four = 4
         case five = 5
+        case six = 6
+        case seven = 7
+        
+        internal func mesh(stencil: Grid.Triangle.Stencil,
+                           color: Color) throws -> Mesh {
+            
+            switch self {
+                
+            default: return try Grid.Triangle.Tile.mesh(stencil: stencil,
+                                                        color: color)
+            }
+        }
     }
+}
+
+extension Classification {
     
     internal enum Vertex: Int {
         
@@ -30,9 +60,19 @@ internal struct Classification {
         case eight = 8
         case nine = 9
         case ten = 10
+        case eleven = 11
         case twelve = 12
+        case thirteen = 13
+        case fourteen = 14
+        case fifteen = 15
+        case sixteen = 16
+        case seventeen = 17
+        case eighteen = 18
     }
-    
+}
+
+extension Classification {
+ 
     internal enum Corner: Int {
         
         case two = 2
@@ -43,9 +83,25 @@ internal struct Classification {
         case seven = 7
         case eight = 8
         case nine = 9
+        case ten = 10
+        case eleven = 11
+        case twelve = 12
+        case thirteen = 13
+        case fourteen = 14
         
-        internal var face: ArchitectureType.Face { .corner }
+        internal func mesh(stencil: Grid.Triangle.Stencil,
+                           color: Color) throws -> Mesh {
+            
+            switch self {
+                
+            default: return try Grid.Triangle.Corner.mesh(stencil: stencil,
+                                                          color: color)
+            }
+        }
     }
+}
+
+extension Classification {
     
     internal enum Edge: Int {
         
@@ -60,19 +116,22 @@ internal struct Classification {
         case twleve = 12
         case thirteen = 13
         case fourteen = 14
+        case fifteen = 15
+        case sixteen = 16
+        case seventeen = 17
+        case eighteen = 18
+        case nineteen = 19
+        case twenty = 20
+        case twentyOne = 21
         
-        internal var face: ArchitectureType.Face { .wall }
+        internal func mesh(stencil: Grid.Triangle.Stencil,
+                           color: Color) throws -> Mesh {
+            
+            switch self {
+                
+            default: return try Grid.Triangle.Edge.mesh(stencil: stencil,
+                                                        color: color)
+            }
+        }
     }
-    
-    internal struct Layer {
-        
-        internal let footprint: [Coordinate : Triangle]
-        internal let vertices: [Grid.Vertex : Vertex]
-        internal let corners: [Coordinate: Corner]
-        internal let edges: [Coordinate : Edge]
-        internal let rotation: [Coordinate : Euclid.Rotation]
-    }
-    
-    internal let upper: Layer
-    internal let lower: Layer
 }
