@@ -27,6 +27,7 @@ extension Classification {
     
     internal enum Triangle: Int {
         
+        case zero = 0
         case one = 1
         case two = 2
         case three = 3
@@ -34,16 +35,6 @@ extension Classification {
         case five = 5
         case six = 6
         case seven = 7
-        
-        internal func mesh(stencil: Grid.Triangle.Stencil,
-                           color: Color) throws -> Mesh {
-            
-            switch self {
-                
-            default: return try Grid.Triangle.Tile.mesh(stencil: stencil,
-                                                        color: color)
-            }
-        }
     }
 }
 
@@ -88,16 +79,6 @@ extension Classification {
         case twelve = 12
         case thirteen = 13
         case fourteen = 14
-        
-        internal func mesh(stencil: Grid.Triangle.Stencil,
-                           color: Color) throws -> Mesh {
-            
-            switch self {
-                
-            default: return try Grid.Triangle.Corner.mesh(stencil: stencil,
-                                                          color: color)
-            }
-        }
     }
 }
 
@@ -123,15 +104,5 @@ extension Classification {
         case nineteen = 19
         case twenty = 20
         case twentyOne = 21
-        
-        internal func mesh(stencil: Grid.Triangle.Stencil,
-                           color: Color) throws -> Mesh {
-            
-            switch self {
-                
-            default: return try Grid.Triangle.Edge.mesh(stencil: stencil,
-                                                        color: color)
-            }
-        }
     }
 }

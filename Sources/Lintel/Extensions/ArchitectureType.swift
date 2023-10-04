@@ -5,11 +5,52 @@
 //
 
 import Bivouac
+import Euclid
 import Foundation
 
 extension ArchitectureType {
     
+    enum Bernina {}
+    enum Daisen {}
+}
+
+extension ArchitectureType {
+    
     public static let apex = Double(Grid.Scale.tile.rawValue)
+    public static let lintel = apex - 0.2
+    
+    internal func mesh(stencil: Grid.Triangle.Stencil,
+                       corner: Classification.Corner) throws -> Mesh {
+        
+        switch corner {
+            
+        default: return try Grid.Triangle.Corner.mesh(stencil: stencil,
+                                                      color: colorPalette.primary)
+        }
+    }
+    
+    internal func mesh(stencil: Grid.Triangle.Stencil,
+                       edge: Classification.Edge) throws -> Mesh {
+        
+        switch edge {
+            
+        case .four: return try Door.mesh(stencil: stencil,
+                                         architectureType: self)
+        
+        default: return try Grid.Triangle.Edge.mesh(stencil: stencil,
+                                                    color: colorPalette.secondary)
+        }
+    }
+    
+    internal func mesh(stencil: Grid.Triangle.Stencil,
+                       triangle: Classification.Triangle) throws -> Mesh {
+        
+        switch triangle {
+            
+        default: return try Grid.Triangle.Tile.mesh(stencil: stencil,
+                                                    color: colorPalette.primary)
+        }
+    }
 }
 
 extension ArchitectureType {

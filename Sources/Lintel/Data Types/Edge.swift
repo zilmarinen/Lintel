@@ -22,7 +22,7 @@ extension Grid.Triangle {
             
             let peak = Vector(0.0, ArchitectureType.apex, 0.0)
             let points = vertices.map { stencil.vertex(for: $0) }
-                    
+            
             var polygons: [Polygon] = []
             
             let apex = points.map { Euclid.Vertex($0 + peak,

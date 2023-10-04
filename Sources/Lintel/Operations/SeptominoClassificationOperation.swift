@@ -34,7 +34,6 @@ internal class SeptominoClassificationOperation: ConcurrentOperation,
             
             for index in 0..<totalLayers {
                 
-                let threshold = (index * 2) + 2
                 let perimeter = footprint.perimeter
                 
                 let layerFootprint = try classify(footprint: footprint)
@@ -59,11 +58,11 @@ internal class SeptominoClassificationOperation: ConcurrentOperation,
                                                  edges: layerEdges,
                                                  rotation: layerRotation)
                 
+                footprint = layerFootprint.keys.filter { layerFootprint[$0] != .one }
+                
                 guard let foundation = layers.last else {
                     
                     layers.append(layer)
-                    
-                    footprint = layerFootprint.keys.filter { layerFootprint[$0]?.rawValue ?? 0 >= threshold }
                     
                     continue
                 }
@@ -92,8 +91,6 @@ internal class SeptominoClassificationOperation: ConcurrentOperation,
                                                    corners: combinedCorners,
                                                    edges: combinedEdges,
                                                    rotation: combinedRotation))
-                
-                footprint = combinedFootprint.keys.filter { combinedFootprint[$0]?.rawValue ?? 0 >= threshold }
             }
             
             self.output = .success(Classification(layers: layers))

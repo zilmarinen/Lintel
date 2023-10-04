@@ -116,8 +116,8 @@ extension BuildingMeshOperation {
                          rotation: Euclid.Rotation,
                          stencil: Grid.Triangle.Stencil) throws -> Mesh {
         
-        let mesh = try corner.mesh(stencil: stencil,
-                                   color: architectureType.colorPalette.primary)
+        let mesh = try architectureType.mesh(stencil: stencil,
+                                             corner: corner)
         
         return mesh.rotated(by: rotation).translated(by: coordinate.convert(to: .tile) + elevation)
     }
@@ -128,8 +128,8 @@ extension BuildingMeshOperation {
                        rotation: Euclid.Rotation,
                        stencil: Grid.Triangle.Stencil) throws -> Mesh {
         
-        let mesh = try edge.mesh(stencil: stencil,
-                                 color: architectureType.colorPalette.secondary)
+        let mesh = try architectureType.mesh(stencil: stencil,
+                                             edge: edge)
         
         return mesh.rotated(by: rotation).translated(by: coordinate.convert(to: .tile) + elevation)
     }
@@ -140,8 +140,8 @@ extension BuildingMeshOperation {
                        rotation: Euclid.Rotation,
                        stencil: Grid.Triangle.Stencil) throws -> Mesh {
         
-        let mesh = try triangle.mesh(stencil: stencil,
-                                     color: architectureType.colorPalette.secondary)
+        let mesh = try architectureType.mesh(stencil: stencil,
+                                             triangle: triangle)
         
         return mesh.rotated(by: rotation).translated(by: coordinate.convert(to: .tile) + elevation)
     }
