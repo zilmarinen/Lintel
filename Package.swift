@@ -13,9 +13,10 @@ let package = Package(
             targets: ["Lintel"]),
     ],
     dependencies: [
-        .package(url: "git@github.com:nicklockwood/Euclid.git", branch: "main"),
+        //.package(url: "git@github.com:nicklockwood/Euclid.git", branch: "main"),
         .package(url: "git@github.com:3Squared/PeakOperation.git", branch: "develop"),
         .package(path: "../Bivouac"),
+        .package(path: "../Euclid"),
     ],
     targets: [
         .target(

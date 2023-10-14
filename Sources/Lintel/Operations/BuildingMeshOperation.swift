@@ -45,6 +45,7 @@ public class BuildingMeshOperation: ConcurrentOperation,
                 do {
                     
                     let stencil = Grid.Triangle.zero.stencil(for: .tile)
+                    let cutaway = stencil.cutaway
                     
                     var mesh = Mesh([])
                 
@@ -66,12 +67,13 @@ public class BuildingMeshOperation: ConcurrentOperation,
                         for edge in layer.edges {
 
                             guard let rotation = layer.rotation[edge.key] else { throw MeshError.invalid(edge: edge.value) }
-
+                            
                             mesh = mesh.union(try self.edge(coordinate: edge.key,
                                                             edge: edge.value,
                                                             elevation: elevation,
                                                             rotation: rotation,
-                                                            stencil: stencil))
+                                                            stencil: stencil,
+                                                            cutaway: cutaway))
                         }
 
                         for tile in layer.footprint {
@@ -126,9 +128,11 @@ extension BuildingMeshOperation {
                        edge: Classification.Edge,
                        elevation: Vector,
                        rotation: Euclid.Rotation,
-                       stencil: Grid.Triangle.Stencil) throws -> Mesh {
+                       stencil: Grid.Triangle.Stencil,
+                       cutaway: Grid.Triangle.Stencil.Cutaway) throws -> Mesh {
         
         let mesh = try architectureType.mesh(stencil: stencil,
+                                             cutaway: cutaway,
                                              edge: edge)
         
         return mesh.rotated(by: rotation).translated(by: coordinate.convert(to: .tile) + elevation)

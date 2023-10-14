@@ -31,7 +31,7 @@ class AppViewModel: ObservableObject {
         }
     }
     
-    @Published var architectureType: ArchitectureType = .bernina {
+    @Published var architectureType: ArchitectureType = .juki {
         
         didSet {
             
@@ -41,7 +41,7 @@ class AppViewModel: ObservableObject {
         }
     }
     
-    @Published var septomino: Grid.Triangle.Septomino = .a {
+    @Published var septomino: Grid.Triangle.Septomino = .maia {
         
         didSet {
             
@@ -60,6 +60,9 @@ class AppViewModel: ObservableObject {
             updateScene()
         }
     }
+    
+    @Published var profile: Mesh.Profile = .init(polygonCount: 0,
+                                                 vertexCount: 0)
     
     let scene = Scene()
     
@@ -109,6 +112,8 @@ extension AppViewModel {
                 
                 self.updateSurface()
                 
+                self.updateProfile(for: mesh)
+                
                 guard let node = self.createNode(with: mesh) else { return }
                 
                 self.scene.rootNode.addChildNode(node)
@@ -140,5 +145,15 @@ extension AppViewModel {
         guard let node = createNode(with: mesh) else { return }
         
         scene.rootNode.addChildNode(node)
+    }
+    
+    private func updateProfile(for mesh: Mesh) {
+        
+        DispatchQueue.main.async { [weak self] in
+            
+            guard let self else { return }
+            
+            self.profile = mesh.profile
+        }
     }
 }
