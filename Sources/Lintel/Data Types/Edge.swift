@@ -12,28 +12,27 @@ extension Grid.Triangle {
     
     internal enum Edge {
         
-        internal static let vertices: [Stencil.Vertex] = [.v0,
-                                                          .v1,
-                                                          .v12,
-                                                          .v4]
-        
         internal static func mesh(stencil: Grid.Triangle.Stencil,
-                                  color: Color) throws -> Mesh {
+                                  architectureType: ArchitectureType) throws -> Mesh {
             
+            let edge = stencil.edge
             let peak = Vector(0.0, ArchitectureType.apex, 0.0)
-            let points = vertices.map { stencil.vertex(for: $0) }
+            let points = [stencil.vertex(for: .v0),
+                          stencil.vertex(for: .v1),
+                          edge.start,
+                          edge.end]
             
             var polygons: [Polygon] = []
             
             let apex = points.map { Euclid.Vertex($0 + peak,
                                                   .up,
                                                   nil,
-                                                  color) }
+                                                  architectureType.colorPalette.primary) }
             
             let base = points.map { Euclid.Vertex($0,
                                                   -.up,
                                                   nil,
-                                                  color) }
+                                                  architectureType.colorPalette.primary) }
             
             try polygons.glue(Polygon(apex))
             try polygons.glue(Polygon(base.reversed()))
@@ -51,7 +50,7 @@ extension Grid.Triangle {
                                          v1,
                                          v2,
                                          v3],
-                                        color: color)
+                                        color: architectureType.colorPalette.primary)
                 
                 try polygons.glue(face?.polygon)
             }
