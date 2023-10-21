@@ -12,23 +12,10 @@ import SceneKit
 
 class AppViewModel: ObservableObject {
     
-    enum Layer: Int,
-                CaseIterable,
-                Identifiable {
+    enum State {
         
-        case one = 1
-        case two = 2
-        case three = 3
-        
-        var id: String {
-            
-            switch self {
-                
-            case .one: return "One"
-            case .two: return "Two"
-            case .three: return "Three"
-            }
-        }
+        case caching
+        case viewer
     }
     
     @Published var architectureType: ArchitectureType = .juki {
@@ -51,7 +38,7 @@ class AppViewModel: ObservableObject {
         }
     }
     
-    @Published var layers: Layer = .two {
+    @Published var layers: Grid.Triangle.Septomino.Layer = .two {
         
         didSet {
             
@@ -64,17 +51,46 @@ class AppViewModel: ObservableObject {
     @Published var profile: Mesh.Profile = .init(polygonCount: 0,
                                                  vertexCount: 0)
     
+    @Published var state: State = .caching
+    
     let scene = Scene()
     
     private let operationQueue = OperationQueue()
     
+    private var cache: BuildingCache?
+    
     init() {
         
-        updateScene()
+        generateCache()
     }
 }
 
 extension AppViewModel {
+    
+    private func generateCache() {
+            
+        let operation = BuildingCacheOperation()
+        
+        operation.enqueue(on: operationQueue) { [weak self] result in
+            
+            guard let self else { return }
+            
+            switch result {
+                
+            case .success(let cache): self.cache = cache
+            case .failure(let error): fatalError(error.localizedDescription)
+            }
+            
+            self.updateScene()
+            
+            DispatchQueue.main.async { [weak self] in
+                
+                guard let self else { return }
+                
+                self.state = .viewer
+            }
+        }
+    }
     
     private func createNode(with mesh: Mesh?) -> SCNNode? {
         
@@ -95,34 +111,20 @@ extension AppViewModel {
     }
     
     private func updateScene() {
+    
+        self.scene.clear()
+                
+        self.updateSurface()
         
-        let operation = BuildingMeshOperation(architectureType: architectureType,
-                                              septomino: septomino,
-                                              totalLayers: layers.rawValue)
-                
-        operation.enqueue(on: operationQueue) { [weak self] result in
-            
-            guard let self else { return }
-            
-            switch result {
-                
-            case .success(let mesh):
-                
-                self.scene.clear()
-                
-                self.updateSurface()
-                
-                self.updateProfile(for: mesh)
-                
-                guard let node = self.createNode(with: mesh) else { return }
-                
-                self.scene.rootNode.addChildNode(node)
-                
-            case .failure(let error):
-                
-                fatalError(error.localizedDescription)
-            }
-        }
+        guard let cache,
+              let mesh = cache.mesh(for: architectureType,
+                                    septomino: septomino,
+                                    layers: layers),
+              let node = self.createNode(with: mesh) else { return }
+        
+        self.scene.rootNode.addChildNode(node)
+        
+        self.updateProfile(for: mesh)
     }
     
     private func updateSurface() {
@@ -133,7 +135,7 @@ extension AppViewModel {
             
             let triangle = Grid.Triangle(coordinate)
             
-            let vertices = triangle.vertices(for: .tile).map { Vertex($0, .up, nil, .white) }
+            let vertices = triangle.corners(for: .tile).map { Vertex($0, .up, nil, .white) }
             
             guard let polygon = Polygon(vertices) else { continue }
             

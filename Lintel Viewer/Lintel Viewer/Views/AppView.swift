@@ -13,24 +13,38 @@ struct AppView: View {
     @ObservedObject private var viewModel = AppViewModel()
     
     var body: some View {
-        
+            
         #if os(iOS)
             NavigationStack {
         
-                sceneView
+                viewer
             }
         #else
+            viewer
+        #endif
+    }
+    
+    var viewer: some View {
+        
+        ZStack(alignment: viewModel.state == .caching ? .center : .bottomTrailing) {
             
-            ZStack(alignment: .bottomTrailing) {
+            sceneView
+            
+            switch viewModel.state {
                 
-                sceneView
+            case .caching:
+                
+                Text("Caching Models")
+                    .foregroundColor(.black)
+                    .padding()
+                
+            case .viewer:
                 
                 Text("Polygons: [\(viewModel.profile.polygonCount)] Vertices: [\(viewModel.profile.vertexCount)]")
                     .foregroundColor(.black)
                     .padding()
             }
-            
-        #endif
+        }
     }
     
     var sceneView: some View {
@@ -46,6 +60,7 @@ struct AppView: View {
                 toolbar
             }
         }
+        .disabled(viewModel.state != .viewer)
     }
     
     @ViewBuilder
@@ -74,7 +89,7 @@ struct AppView: View {
         Picker("Layers",
                selection: $viewModel.layers) {
             
-            ForEach(AppViewModel.Layer.allCases, id: \.self) { layer in
+            ForEach(Grid.Triangle.Septomino.Layer.allCases, id: \.self) { layer in
                 
                 Text(layer.id.capitalized)
                     .id(layer)
