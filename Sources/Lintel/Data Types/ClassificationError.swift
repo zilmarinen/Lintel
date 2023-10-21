@@ -9,9 +9,8 @@ import Foundation
 
 internal enum ClassificationError: Error {
     
-    case invalid(triangle: Grid.Triangle)
-    case invalid(vertex: Grid.Vertex)
-    case invalid(corner: Grid.Triangle)
-    case invalid(edge: Grid.Triangle)
+    case invalid(tile: Coordinate)
+    case invalid(vertex: Coordinate)
+    case invalid(halfEdge: Coordinate)
+    case invalid(edge: Coordinate)
 }
-

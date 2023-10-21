@@ -21,53 +21,6 @@ extension ArchitectureType {
 
 extension ArchitectureType {
     
-    internal func mesh(stencil: Grid.Triangle.Stencil,
-                       corner: Classification.Corner) throws -> Mesh {
-        
-        switch corner {
-            
-        default: return try Grid.Triangle.Corner.mesh(stencil: stencil,
-                                                      architectureType: self)
-        }
-    }
-    
-    internal func mesh(stencil: Grid.Triangle.Stencil,
-                       cutaway: Grid.Triangle.Stencil.Cutaway,
-                       edge: Classification.Edge) throws -> Mesh {
-        
-        switch edge {
-            
-        case .four, .nine: return try Door.mesh(stencil: stencil,
-                                                cutaway: cutaway,
-                                                architectureType: self)
-        
-        case .five: return try Archway.mesh(stencil: stencil,
-                                            cutaway: cutaway,
-                                            architectureType: self)
-        
-        case .six, .eight,
-                .ten, .fourteen, .sixteen: return try Window.mesh(stencil: stencil,
-                                                                  cutaway: cutaway,
-                                                                  architectureType: self)
-        
-        default: return try Grid.Triangle.Edge.mesh(stencil: stencil,
-                                                    architectureType: self)
-        }
-    }
-    
-    internal func mesh(stencil: Grid.Triangle.Stencil,
-                       triangle: Classification.Triangle) throws -> Mesh {
-        
-        switch triangle {
-            
-        default: return try Grid.Triangle.Tile.mesh(stencil: stencil,
-                                                    color: colorPalette.primary)
-        }
-    }
-}
-
-extension ArchitectureType {
-    
     internal var doorColor: Color {
         
         switch self {

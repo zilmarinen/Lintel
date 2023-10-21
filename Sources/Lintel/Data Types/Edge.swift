@@ -10,7 +10,55 @@ import Foundation
 
 extension Grid.Triangle {
     
-    internal enum Edge {
+    internal enum Edge: Int,
+                        Architecture,
+                        CaseIterable,
+                        Identifiable {
+        
+        case four = 4
+        case five = 5
+        case six = 6
+        case seven = 7
+        case eight = 8
+        case nine = 9
+        case ten = 10
+        case eleven = 11
+        case twleve = 12
+        case thirteen = 13
+        case fourteen = 14
+        case fifteen = 15
+        case sixteen = 16
+        case seventeen = 17
+        case eighteen = 18
+        case nineteen = 19
+        case twenty = 20
+        case twentyOne = 21
+        
+        var id: String { "Edge [\(rawValue)]" }
+        
+        internal func mesh(stencil: Grid.Triangle.Stencil,
+                           cutaway: Grid.Triangle.Stencil.Cutaway,
+                           architectureType: ArchitectureType) throws -> Mesh {
+            
+            switch self {
+                
+            case .four, .nine: return try ArchitectureType.Door.mesh(stencil: stencil,
+                                                                     cutaway: cutaway,
+                                                                     architectureType: architectureType)
+            
+            case .five: return try ArchitectureType.Archway.mesh(stencil: stencil,
+                                                                 cutaway: cutaway,
+                                                                 architectureType: architectureType)
+            
+            case .six, .eight,
+                    .ten, .fourteen, .sixteen: return try ArchitectureType.Window.mesh(stencil: stencil,
+                                                                                       cutaway: cutaway,
+                                                                                       architectureType: architectureType)
+            
+            default: return try Self.mesh(stencil: stencil,
+                                          architectureType: architectureType)
+            }
+        }
         
         internal static func mesh(stencil: Grid.Triangle.Stencil,
                                   architectureType: ArchitectureType) throws -> Mesh {

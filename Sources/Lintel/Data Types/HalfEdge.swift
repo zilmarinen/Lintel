@@ -1,5 +1,5 @@
 //
-//  Tile.swift
+//  HalfEdge.swift
 //
 //  Created by Zack Brown on 02/10/2023.
 //
@@ -10,21 +10,26 @@ import Foundation
 
 extension Grid.Triangle {
     
-    internal enum Tile: Int,
-                        Architecture,
-                        CaseIterable,
-                        Identifiable {
+    internal enum HalfEdge: Int,
+                            Architecture,
+                            CaseIterable,
+                            Identifiable {
         
-        case zero = 0
-        case one = 1
         case two = 2
         case three = 3
         case four = 4
         case five = 5
         case six = 6
         case seven = 7
+        case eight = 8
+        case nine = 9
+        case ten = 10
+        case eleven = 11
+        case twelve = 12
+        case thirteen = 13
+        case fourteen = 14
         
-        var id: String { "Tile [\(rawValue)]" }
+        var id: String { "Half Edge [\(rawValue)]" }
         
         internal func mesh(stencil: Grid.Triangle.Stencil,
                   cutaway: Grid.Triangle.Stencil.Cutaway,
@@ -33,31 +38,30 @@ extension Grid.Triangle {
             switch self {
                 
             default: return try Self.mesh(stencil: stencil,
-                                          color: architectureType.colorPalette.primary)
+                                          architectureType: architectureType)
             }
         }
         
-        internal static let vertices: [Stencil.Vertex] = [.v0,
-                                                          .v1,
-                                                          .v2]
-        
         internal static func mesh(stencil: Grid.Triangle.Stencil,
-                                  color: Color) throws -> Mesh {
+                                  architectureType: ArchitectureType) throws -> Mesh {
             
+            let corner = stencil.corner
             let peak = Vector(0.0, ArchitectureType.apex, 0.0)
-            let points = vertices.map { stencil.vertex(for: $0) }
+            let points = [stencil.vertex(for: .v0),
+                          corner.start,
+                          corner.end]
                     
             var polygons: [Polygon] = []
             
             let apex = points.map { Euclid.Vertex($0 + peak,
                                                   .up,
                                                   nil,
-                                                  color) }
+                                                  architectureType.colorPalette.primary) }
             
             let base = points.map { Euclid.Vertex($0,
                                                   -.up,
                                                   nil,
-                                                  color) }
+                                                  architectureType.colorPalette.primary) }
             
             try polygons.glue(Polygon(apex))
             try polygons.glue(Polygon(base.reversed()))
@@ -75,7 +79,7 @@ extension Grid.Triangle {
                                          v1,
                                          v2,
                                          v3],
-                                        color: color)
+                                        color: architectureType.colorPalette.primary)
                 
                 try polygons.glue(face?.polygon)
             }
