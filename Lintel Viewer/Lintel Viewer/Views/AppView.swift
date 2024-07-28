@@ -7,6 +7,7 @@
 import Bivouac
 import Deltille
 import Dependencies
+import Lintel
 import SceneKit
 import SwiftUI
 
@@ -71,6 +72,16 @@ struct AppView: View {
     @ViewBuilder
     var toolbar: some View {
         
+        Picker("Architecture Type",
+               selection: $viewModel.architectureType) {
+            
+            ForEach(ArchitectureType.allCases, id: \.self) { architectureType in
+                
+                Text(architectureType.id)
+                    .id(architectureType)
+            }
+        }
+        
         Picker("Septomino",
                selection: $viewModel.septomino) {
             
@@ -79,6 +90,16 @@ struct AppView: View {
                 Text(septomino.id)
                     .id(septomino)
             }
+        }
+        
+        Button {
+                    
+            viewModel.presentExportModal()
+            
+        } label: {
+            
+          Label("Export Meshes",
+                systemImage: "square.and.arrow.up")
         }
     }
 }

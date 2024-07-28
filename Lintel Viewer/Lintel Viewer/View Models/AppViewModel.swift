@@ -21,6 +21,16 @@ class AppViewModel: ObservableObject {
     
     @Dependency(\.buildingCache) var buildingCache
     
+    @Published var architectureType: ArchitectureType = .bernina {
+        
+        didSet {
+            
+            guard oldValue != architectureType else { return }
+            
+            updateScene()
+        }
+    }
+    
     @Published var septomino: Grid.Triangle.Septomino = .maia {
         
         didSet {
@@ -79,7 +89,7 @@ extension AppViewModel {
                 
         scene.render(surface: septomino.footprint.coordinates.perimeter)
         
-        guard let mesh = buildingCache.mesh("") else { return }
+        guard let mesh = buildingCache.mesh(septomino.id) else { return }
         
         let geometry = SCNGeometry(mesh)
         
@@ -97,6 +107,40 @@ extension AppViewModel {
             guard let self else { return }
             
             self.profile = mesh.profile
+        }
+    }
+}
+
+extension AppViewModel {
+ 
+    func presentExportModal() {
+        
+        let panel = NSOpenPanel()
+        
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.canCreateDirectories = true
+        panel.isExtensionHidden = true
+        panel.showsHiddenFiles = false
+        panel.showsTagField = false
+        
+        panel.begin { [weak self] response in
+            
+            switch response {
+                
+            case .OK:
+                
+                guard let self,
+                      let url = panel.urls.first else { return }
+                
+                let operation = AssetCacheExportOperation(buildingCache,
+                                                          url)
+                
+                operation.enqueue(on: self.operationQueue)
+                
+            default: break
+            }
         }
     }
 }
