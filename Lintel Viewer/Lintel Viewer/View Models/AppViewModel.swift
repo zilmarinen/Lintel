@@ -5,8 +5,9 @@
 //
 
 import Bivouac
+import Deltille
+import Dependencies
 import Euclid
-import Foundation
 import Lintel
 import SceneKit
 
@@ -18,15 +19,7 @@ class AppViewModel: ObservableObject {
         case viewer
     }
     
-    @Published var architectureType: ArchitectureType = .juki {
-        
-        didSet {
-            
-            guard oldValue != architectureType else { return }
-            
-            updateScene()
-        }
-    }
+    @Dependency(\.buildingCache) var buildingCache
     
     @Published var septomino: Grid.Triangle.Septomino = .maia {
         
@@ -38,26 +31,14 @@ class AppViewModel: ObservableObject {
         }
     }
     
-    @Published var layers: Grid.Triangle.Septomino.Layer = .two {
-        
-        didSet {
-            
-            guard oldValue != layers else { return }
-            
-            updateScene()
-        }
-    }
-    
     @Published var profile: Mesh.Profile = .init(polygonCount: 0,
                                                  vertexCount: 0)
     
     @Published var state: State = .caching
     
-    let scene = Scene()
+    let scene = ModelViewScene()
     
     private let operationQueue = OperationQueue()
-    
-    private var cache: BuildingCache?
     
     init() {
         
@@ -69,7 +50,7 @@ extension AppViewModel {
     
     private func generateCache() {
             
-        let operation = BuildingCacheOperation()
+        let operation = LintelCacheOperation()
         
         operation.enqueue(on: operationQueue) { [weak self] result in
             
@@ -77,7 +58,7 @@ extension AppViewModel {
             
             switch result {
                 
-            case .success(let cache): self.cache = cache
+            case .success(let meshes): buildingCache.merge(meshes)
             case .failure(let error): fatalError(error.localizedDescription)
             }
             
@@ -92,61 +73,21 @@ extension AppViewModel {
         }
     }
     
-    private func createNode(with mesh: Mesh?) -> SCNNode? {
-        
-        guard let mesh else { return nil }
-        
-        let node = SCNNode()
-        let wireframe = SCNNode()
-        let material = SCNMaterial()
-        
-        node.geometry = SCNGeometry(mesh)
-        node.geometry?.firstMaterial = material
-        
-        wireframe.geometry = SCNGeometry(wireframe: mesh)
-        
-        node.addChildNode(wireframe)
-        
-        return node
-    }
-    
     private func updateScene() {
     
-        self.scene.clear()
+        scene.clear()
                 
-        self.updateSurface()
+        scene.render(surface: septomino.footprint.coordinates.perimeter)
         
-        guard let cache,
-              let mesh = cache.mesh(for: architectureType,
-                                    septomino: septomino,
-                                    layers: layers),
-              let node = self.createNode(with: mesh) else { return }
+        guard let mesh = buildingCache.mesh("") else { return }
         
-        self.scene.rootNode.addChildNode(node)
+        let geometry = SCNGeometry(mesh)
         
-        self.updateProfile(for: mesh)
-    }
-    
-    private func updateSurface() {
+        geometry.program = Program(function: .geometry)
         
-        var polygons: [Euclid.Polygon] = []
+        scene.model.geometry = geometry
         
-        for coordinate in septomino.footprint.perimeter {
-            
-            let triangle = Grid.Triangle(coordinate)
-            
-            let vertices = triangle.corners(for: .tile).map { Vertex($0, .up, nil, .white) }
-            
-            guard let polygon = Polygon(vertices) else { continue }
-            
-            polygons.append(polygon)
-        }
-        
-        let mesh = Mesh(polygons)
-        
-        guard let node = createNode(with: mesh) else { return }
-        
-        scene.rootNode.addChildNode(node)
+        updateProfile(for: mesh)
     }
     
     private func updateProfile(for mesh: Mesh) {

@@ -5,10 +5,14 @@
 //
 
 import Bivouac
+import Deltille
+import Dependencies
 import SceneKit
 import SwiftUI
 
 struct AppView: View {
+    
+    @Dependency(\.deviceManager) var deviceManager
 
     @ObservedObject private var viewModel = AppViewModel()
     
@@ -52,7 +56,8 @@ struct AppView: View {
         SceneView(scene: viewModel.scene,
                   pointOfView: viewModel.scene.camera.pov,
                   options: [.allowsCameraControl,
-                            .autoenablesDefaultLighting])
+                            .autoenablesDefaultLighting],
+                  technique: deviceManager.technique)
         .toolbar {
             
             ToolbarItemGroup {
@@ -66,33 +71,13 @@ struct AppView: View {
     @ViewBuilder
     var toolbar: some View {
         
-        Picker("Architecture",
-               selection: $viewModel.architectureType) {
-            
-            ForEach(ArchitectureType.allCases, id: \.self) { architectureType in
-                
-                Text(architectureType.id.capitalized)
-                    .id(architectureType)
-            }
-        }
-        
         Picker("Septomino",
                selection: $viewModel.septomino) {
             
             ForEach(Grid.Triangle.Septomino.allCases, id: \.self) { septomino in
                 
-                Text(septomino.id.capitalized)
+                Text(septomino.id)
                     .id(septomino)
-            }
-        }
-        
-        Picker("Layers",
-               selection: $viewModel.layers) {
-            
-            ForEach(Grid.Triangle.Septomino.Layer.allCases, id: \.self) { layer in
-                
-                Text(layer.id.capitalized)
-                    .id(layer)
             }
         }
     }

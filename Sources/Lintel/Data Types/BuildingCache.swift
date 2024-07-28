@@ -5,20 +5,12 @@
 //
 
 import Bivouac
+import Deltille
+import Dependencies
 import Euclid
-import Foundation
 
-public struct BuildingCache {
+public final class BuildingCache: AssetCache,
+                                  DependencyKey {
     
-    public static func identifier(for architectureType: ArchitectureType,
-                                  septomino: Grid.Triangle.Septomino,
-                                  layers: Grid.Triangle.Septomino.Layer) -> String { "\(architectureType.id)_\(septomino.id)_\(layers.id)" }
-    
-    public let meshes: [String : Mesh]
-    
-    public func mesh(for architectureType: ArchitectureType,
-                     septomino: Grid.Triangle.Septomino,
-                     layers: Grid.Triangle.Septomino.Layer) -> Mesh? { meshes[Self.identifier(for: architectureType,
-                                                                                              septomino: septomino,
-                                                                                              layers: layers)] }
+    static public var liveValue = BuildingCache([:])
 }
