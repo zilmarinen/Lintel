@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "git@github.com:nicklockwood/Euclid.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "00a39468d274a3081966ed115ef5f18cd28b43ff"
+        "branch" : "develop",
+        "revision" : "5e5c9e61776f6f1fb6152ba2748cc6eff30c32bb"
       }
     },
     {

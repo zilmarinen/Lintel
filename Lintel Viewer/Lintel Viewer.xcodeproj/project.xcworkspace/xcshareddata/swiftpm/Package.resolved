@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "git@github.com:nicklockwood/Euclid.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "5f6ffe2cf22a596ba5df5d5337c4ac5d81d2c3ad"
+        "branch" : "develop",
+        "revision" : "eee79b3c758076e7d2c2213b293e2d03c184fa22"
       }
     },
     {
@@ -32,8 +32,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-clocks",
       "state" : {
-        "revision" : "3581e280bf0d90c3fb9236fb23e75a5d8c46b533",
-        "version" : "1.0.4"
+        "revision" : "b9b24b69e2adda099a1fa381cda1eeec272d5b53",
+        "version" : "1.0.5"
       }
     },
     {
@@ -41,8 +41,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-concurrency-extras",
       "state" : {
-        "revision" : "bb5059bde9022d69ac516803f4f227d8ac967f71",
-        "version" : "1.1.0"
+        "revision" : "6054df64b55186f08b6d0fd87152081b8ad8d613",
+        "version" : "1.2.0"
       }
     },
     {
@@ -51,7 +51,7 @@
       "location" : "git@github.com:pointfreeco/swift-dependencies.git",
       "state" : {
         "branch" : "main",
-        "revision" : "4b521568a7fd257e83ce9a8d77f9865c1d01a7ca"
+        "revision" : "710147502d056340d8b10befd314d42d2f112fc7"
       }
     },
     {
@@ -59,8 +59,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swiftlang/swift-syntax",
       "state" : {
-        "revision" : "82a453c2dfa335c7e778695762438dfe72b328d2",
-        "version" : "600.0.0-prerelease-2024-07-24"
+        "revision" : "0687f71944021d616d34d922343dcef086855920",
+        "version" : "600.0.1"
       }
     },
     {
@@ -68,8 +68,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
       "state" : {
-        "revision" : "357ca1e5dd31f613a1d43320870ebc219386a495",
-        "version" : "1.2.2"
+        "revision" : "27d767d643fa2cf083d0a73d74fa84cacb53e85c",
+        "version" : "1.4.1"
       }
     }
   ],
