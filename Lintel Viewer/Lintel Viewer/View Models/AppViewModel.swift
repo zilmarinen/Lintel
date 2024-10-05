@@ -20,6 +20,7 @@ class AppViewModel: ObservableObject {
     }
     
     @Dependency(\.buildingCache) var buildingCache
+    @Dependency(\.mainQueue) var mainQueue
     
     @Published var architectureType: ArchitectureType = .bernina {
         
@@ -36,6 +37,16 @@ class AppViewModel: ObservableObject {
         didSet {
             
             guard oldValue != septomino else { return }
+            
+            updateScene()
+        }
+    }
+    
+    @Published var floors: Int = 3 {
+        
+        didSet {
+            
+            guard oldValue != floors else { return }
             
             updateScene()
         }
@@ -66,15 +77,15 @@ extension AppViewModel {
             
             guard let self else { return }
             
-            switch result {
-                
-            case .success(let meshes): buildingCache.merge(meshes)
-            case .failure(let error): fatalError(error.localizedDescription)
-            }
+//            switch result {
+//                
+//            case .success(let meshes): buildingCache.merge(meshes)
+//            case .failure(let error): fatalError(error.localizedDescription)
+//            }
             
             self.updateScene()
             
-            DispatchQueue.main.async { [weak self] in
+            mainQueue.schedule { [weak self] in
                 
                 guard let self else { return }
                 
@@ -102,7 +113,7 @@ extension AppViewModel {
     
     private func updateProfile(for mesh: Mesh) {
         
-        DispatchQueue.main.async { [weak self] in
+        mainQueue.schedule { [weak self] in
             
             guard let self else { return }
             

@@ -5,26 +5,30 @@
 //
 
 import Bivouac
+import Deltille
 import Euclid
 import Foundation
 import PeakOperation
 
-public class PrefabLoadingOperation: ConcurrentOperation,
-                                     ProducesResult {
+internal class PrefabLoadingOperation: ConcurrentOperation,
+                                       ProducesResult {
     
-    public var output: Result<[String : Mesh], Error> = Result { throw ResultError.noResult }
+    public var output: Result<[Prefab : Mesh], Error> = Result { throw ResultError.noResult }
     
     public override func execute() {
      
         do {
             
-            var meshes: [String : Mesh] = [:]
+            var meshes: [Prefab : Mesh] = [:]
+            
+            let stencil = Grid.Triangle(.zero).stencil(.tile)
             
             for prefab in Prefab.allCases {
                 
                 for architectureType in ArchitectureType.allCases {
                     
-                    meshes[prefab.rawValue] = try prefab.mesh(architectureType)
+                    meshes[prefab] = try prefab.mesh(architectureType,
+                                                     stencil)
                 }
             }
             

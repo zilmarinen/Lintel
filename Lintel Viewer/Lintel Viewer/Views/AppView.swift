@@ -92,6 +92,16 @@ struct AppView: View {
             }
         }
         
+        Picker("Floors",
+               selection: $viewModel.floors) {
+            
+            ForEach(1...3, id: \.self) { floor in
+                
+                Text("\(floor)")
+                    .id(floor)
+            }
+        }
+        
         Button {
                     
             viewModel.presentExportModal()
