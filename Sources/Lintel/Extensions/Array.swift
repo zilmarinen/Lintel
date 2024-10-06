@@ -26,6 +26,25 @@ extension Array where Element == Grid.Coordinate {
     /// Find unique vertices for connected triangles
     internal var vertices: [Grid.Coordinate] { Array(Set(flatMap { Grid.Triangle($0).corners })) }
     
+    /// Count number of directly connected vertices to classify edges and half edges along perimeter
+    internal var weightedEdges: [WeightedVertex] {
+     
+        let vertices = self.vertices
+        
+        return perimeter.map {
+            
+            let triangle = Grid.Triangle($0)
+            let corners = triangle.corners
+            
+            let connectedVertices = vertices.filter { corners.contains($0) }
+            
+            //half edges / corners share a single vertex    (count == 1)
+            //edges share two vertices                      (count == 2)
+            return WeightedVertex(coordinate: $0,
+                                  weight: connectedVertices.count)
+        }
+    }
+    
     /// Count number of directly connected triangles within foundations
     internal var weightedFootprint: [WeightedVertex] {
         
@@ -34,24 +53,6 @@ extension Array where Element == Grid.Coordinate {
             let adjacent = Grid.Triangle($0).adjacent
             
             //sum up count of adjacent triangles
-            let weight = adjacent.reduce(into: Int()) { result, coordinate in
-                
-                result += contains(coordinate) ? 1 : 0
-            }
-            
-            return WeightedVertex(coordinate: $0,
-                                  weight: weight)
-        }
-    }
-    
-    /// Count number of directly connected vertices within foundations
-    internal var weightedVertices: [WeightedVertex] {
-        
-        map {
-            
-            let adjacent = Grid.Triangle.vertices($0)
-            
-            //sum up count of adjacent vertices
             let weight = adjacent.reduce(into: Int()) { result, coordinate in
                 
                 result += contains(coordinate) ? 1 : 0
@@ -118,6 +119,24 @@ extension Array where Element == Grid.Coordinate {
             
             return WeightedVertex(coordinate: $0,
                                   weight: index)
+        }
+    }
+    
+    /// Count number of directly connected vertices within foundations
+    internal var weightedVertices: [WeightedVertex] {
+        
+        map {
+            
+            let adjacent = Grid.Triangle.vertices($0)
+            
+            //sum up count of adjacent vertices
+            let weight = adjacent.reduce(into: Int()) { result, coordinate in
+                
+                result += contains(coordinate) ? 1 : 0
+            }
+            
+            return WeightedVertex(coordinate: $0,
+                                  weight: weight)
         }
     }
 }

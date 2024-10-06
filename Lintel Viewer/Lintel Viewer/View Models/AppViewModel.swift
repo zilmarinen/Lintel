@@ -69,6 +69,10 @@ class AppViewModel: ObservableObject {
 
 extension AppViewModel {
     
+    private var identifier: String { BuildingCache.identifier(architectureType,
+                                                              septomino,
+                                                              floors) }
+    
     private func generateCache() {
             
         let operation = LintelCacheOperation()
@@ -77,11 +81,11 @@ extension AppViewModel {
             
             guard let self else { return }
             
-//            switch result {
-//                
-//            case .success(let meshes): buildingCache.merge(meshes)
-//            case .failure(let error): fatalError(error.localizedDescription)
-//            }
+            switch result {
+                
+            case .success(let meshes): buildingCache.merge(meshes)
+            case .failure(let error): fatalError(error.localizedDescription)
+            }
             
             self.updateScene()
             
@@ -100,7 +104,7 @@ extension AppViewModel {
                 
         scene.render(surface: septomino.footprint.coordinates.perimeter)
         
-        guard let mesh = buildingCache.mesh(septomino.id) else { return }
+        guard let mesh = buildingCache.mesh(identifier) else { return }
         
         let geometry = SCNGeometry(mesh)
         

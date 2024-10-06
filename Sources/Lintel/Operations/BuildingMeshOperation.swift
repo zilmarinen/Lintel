@@ -31,17 +31,33 @@ internal class BuildingMeshOperation: ConcurrentOperation,
         self.floors = floors
         
         super.init()
-        
-        self.internalQueue.maxConcurrentOperationCount = 1
     }
     
     public override func execute() {
         
         do {
             
-            //
-            self.output = .success(Mesh([]))
-            //
+            let floorPlan = FloorPlan(foundation: septomino.coordinates)
+            
+            var mesh = Mesh([])
+            
+            for vertex in floorPlan.perimeter {
+                
+//                guard let edge = floorPlan.edge(vertex.coordinate) else { throw GeometryError.invalidPolygon }
+//                
+//                guard let prefab = prefabs[edge == .edge ? .wallFull : .wallHalf] else { throw GeometryError.invalidStencil }
+                let prefab = prefabs[.wallFull]!
+                
+                let triangle = Grid.Triangle(vertex.coordinate)
+                
+                let transform = Transform(offset: Vector(triangle.position,
+                                                         Grid.Triangle.Scale.tile),
+                                          rotation: floorPlan.rotation(vertex.coordinate))
+                
+                mesh = mesh.union(prefab.transformed(by: transform))
+            }
+            
+            self.output = .success(mesh)
         }
         catch { self.output = .failure(error) }
         

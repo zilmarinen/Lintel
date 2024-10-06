@@ -18,10 +18,13 @@ public class LintelCacheOperation: ConcurrentOperation,
     public override func execute() {
         
         let group = DispatchGroup()
+        let queue = DispatchQueue(label: "LintelCacheOperation",
+                                  attributes: .concurrent)
         
         let prefab = PrefabLoadingOperation()
         
         var meshes: [String : Mesh] = [:]
+        var errors: [Error] = []
         
         group.enter()
      
@@ -37,31 +40,31 @@ public class LintelCacheOperation: ConcurrentOperation,
                     
                     for septomino in Grid.Triangle.Septomino.allCases {
                         
-                        for floor in 0..<3 {
+                        for floor in 1...3 {
                             
-//                            let building = BuildingMeshOperation(architectureType,
-//                                                                 septomino,
-//                                                                 prefabs,
-//                                                                 floor)
-//                            
-//                            let identifier = "\(architectureType.id)_\(septomino.id)_\(floor)"
-//                            
-//                            group.enter()
-//                            
-//                            building.enqueue(on: self.internalQueue) { result in
-//                                
-//                                switch result {
-//                                case .success(let mesh): meshes[identifier] = mesh
-//                                    
-//                                case .failure(let error):
-//                                    
-//                                    self.internalQueue.cancelAllOperations()
-//                                    
-//                                    self.output = .failure(error)
-//                                }
-//                                
-//                                group.leave()
-//                            }
+                            let building = BuildingMeshOperation(architectureType,
+                                                                 septomino,
+                                                                 prefabs,
+                                                                 floor)
+                            
+                            let identifier = BuildingCache.identifier(architectureType,
+                                                                      septomino,
+                                                                      floor)
+                            
+                            group.enter()
+                            
+                            building.enqueue(on: self.internalQueue) { result in
+                                
+                                queue.async(flags: .barrier) {
+                                    
+                                    switch result {
+                                    case .success(let mesh): meshes[identifier] = mesh
+                                    case .failure(let error): errors.append(error)
+                                    }
+                                    
+                                    group.leave()
+                                }
+                            }
                         }
                     }
                 }
@@ -73,6 +76,8 @@ public class LintelCacheOperation: ConcurrentOperation,
         }
         
         group.wait()
+        
+        self.output = errors.isEmpty ? .success(meshes) : .failure(GeometryError.errors(errors))
         
         finish()
     }

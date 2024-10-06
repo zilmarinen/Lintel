@@ -13,4 +13,11 @@ public final class BuildingCache: AssetCache,
                                   DependencyKey {
     
     static public var liveValue = BuildingCache([:])
+    
+    static public func identifier(_ architectureType: ArchitectureType,
+                                  _ septomino: Grid.Triangle.Septomino,
+                                  _ floor: Int) -> String {
+            
+        "\(architectureType.id)_\(septomino.id)_\(floor)"
+    }
 }
