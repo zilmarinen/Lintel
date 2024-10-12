@@ -32,7 +32,7 @@ class AppViewModel: ObservableObject {
         }
     }
     
-    @Published var septomino: Grid.Triangle.Septomino = .maia {
+    @Published var septomino: Grid.Triangle.Septomino = .electra {
         
         didSet {
             
@@ -42,7 +42,7 @@ class AppViewModel: ObservableObject {
         }
     }
     
-    @Published var floors: Int = 3 {
+    @Published var floors: Int = 1 {
         
         didSet {
             

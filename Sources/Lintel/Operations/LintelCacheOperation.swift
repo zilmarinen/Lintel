@@ -6,12 +6,15 @@
 
 import Bivouac
 import Deltille
+import Dependencies
 import Euclid
 import Foundation
 import PeakOperation
 
 public class LintelCacheOperation: ConcurrentOperation,
                                    ProducesResult {
+    
+    @Dependency(\.prefabCache) var prefabCache
     
     public var output: Result<[String : Mesh], Error> = Result { throw ResultError.noResult }
     
@@ -36,6 +39,8 @@ public class LintelCacheOperation: ConcurrentOperation,
                 
             case .success(let prefabs):
                 
+                self.prefabCache.merge(prefabs)
+                
                 for architectureType in ArchitectureType.allCases {
                     
                     for septomino in Grid.Triangle.Septomino.allCases {
@@ -44,7 +49,6 @@ public class LintelCacheOperation: ConcurrentOperation,
                             
                             let building = BuildingMeshOperation(architectureType,
                                                                  septomino,
-                                                                 prefabs,
                                                                  floor)
                             
                             let identifier = BuildingCache.identifier(architectureType,

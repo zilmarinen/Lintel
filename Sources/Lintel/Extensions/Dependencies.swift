@@ -13,4 +13,10 @@ extension DependencyValues {
         get { self[BuildingCache.self] }
         set { self[BuildingCache.self] = newValue }
     }
+    
+    internal var prefabCache: PrefabCache {
+        
+        get { self[PrefabCache.self] }
+        set { self[PrefabCache.self] = newValue }
+    }
 }

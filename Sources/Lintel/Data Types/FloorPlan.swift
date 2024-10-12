@@ -53,9 +53,9 @@ internal struct FloorPlan {
 
 extension FloorPlan {
     
-    internal func collapse() -> Self {
+    internal func collapse(_ threshold: Int = 1) -> Self {
         
-        let foundation = footprint.compactMap { $0.weight > 1 ? $0 : nil }
+        let foundation = footprint.compactMap { $0.weight > threshold ? $0 : nil }
         
         return Self(foundation: foundation.map { $0.coordinate })
     }
@@ -76,15 +76,17 @@ extension FloorPlan {
         return edge.weight == 1 ? .halfEdge : .edge
     }
     
+    internal func debug(_ coordinate: Grid.Coordinate) -> WeightedVertex? { rotations.first { $0.coordinate == coordinate } }
+    
     internal func rotation(_ coordinate: Grid.Coordinate) -> Rotation {
         
-        let rotation = rotations.first { $0.coordinate == coordinate}
+        let rotation = rotations.first { $0.coordinate == coordinate }
         
         guard let rotation else { return .identity }
         
         let triangle = Grid.Triangle(coordinate)
         
-        let angle = Angle(radians: triangle.rotation)
+        let angle = Angle(degrees: triangle.rotation + (Double(-rotation.weight) * Grid.Triangle.Rotation.step))
         
         return Rotation(axis: .y,
                         angle: angle)

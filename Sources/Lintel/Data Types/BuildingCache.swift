@@ -21,3 +21,15 @@ public final class BuildingCache: AssetCache,
         "\(architectureType.id)_\(septomino.id)_\(floor)"
     }
 }
+
+internal final class PrefabCache: AssetCache,
+                                  DependencyKey {
+    
+    static public var liveValue = PrefabCache([:])
+    
+    static internal func identifier(_ architectureType: ArchitectureType,
+                                    _ prefab: Prefab) -> String {
+            
+        "\(architectureType.id)_\(prefab.id)"
+    }
+}
