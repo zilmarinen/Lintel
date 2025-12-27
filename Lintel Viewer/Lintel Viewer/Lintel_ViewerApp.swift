@@ -7,7 +7,7 @@
 import SwiftUI
 
 @main
-struct Verdure_ViewerApp: App {
+struct Lintel_ViewerApp: App {
     
     var body: some Scene {
         
