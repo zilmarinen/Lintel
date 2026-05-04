@@ -5,11 +5,11 @@
 //
 
 import Alluvium
+import Bivouac
 import Combine
 import Deltille
 import Euclid
 import Foundation
-import Lattice
 import Lintel
 import SceneKit
 import SwiftUI
@@ -65,18 +65,20 @@ extension AppViewModel {
     }
     
     private func updateSurface() {
-        
+            
         let footprint = Triangle.Footprint(.zero,
                                            septomino.coordinates)
         
-        var mesh = Mesh([])
+        var mesh = Mesh.empty
         
         for tile in footprint.perimeter {
-            
+                
             let color = tile.isPointy ? gridColor : gridAlternateColor
             
-            mesh = mesh.merge(tile.mesh(.tile,
-                                        .init(color)))
+            guard let surface = Mesh.surface(tile.vertices.position(.tile),
+                                             .init(color)) else { continue }
+            
+            mesh = mesh.merge(surface)
         }
         
         surface.geometry = .init(mesh)

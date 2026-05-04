@@ -4,9 +4,9 @@
 //  Created by Zack Brown on 24/12/2025.
 //
 
+import Bivouac
 import Deltille
 import Euclid
-import Lattice
 
 extension Mesh {
     
@@ -20,11 +20,11 @@ extension Mesh {
         let vertices = footprint.vertices
         let scale = Triangle.Scale.tile
         let size = 0.2
-        let apex = Vector(0.0, scale.edgeLength, 0.0)
-        
+        let apex = Vector(0.0, scale.length, 0.0)
+
         var polygons: [Polygon] = []
         
-        for tile in perimeter {
+        for tile in perimeter + tiles {
             
             let corners = tile.vertices.filter { vertices.contains($0) }
             
@@ -52,11 +52,13 @@ extension Mesh {
                 let v5 = v3 + apex
                 let v6 = v4 + apex
                 
-                let p0 = [v4 + apex, v3 + apex, v2 + apex].path(.red)
-                let p1 = [v5, v6, v4, v3].path(.blue)
+                let p0 = [v4 + apex, v3 + apex, v2 + apex]
+                let p1 = [v5, v6, v4, v3]
                 
-                guard let peak = Polygon(shape: p0),
-                      let edge = Polygon(shape: p1) else { break }
+                guard let peak = Polygon.surface(p0,
+                                                 .red),
+                      let edge = Polygon.surface(p1,
+                                                 .blue) else { break }
                 
                 polygons.append(contentsOf: [peak,
                                              edge])
@@ -81,16 +83,25 @@ extension Mesh {
                 let v5 = v3 + apex
                 let v6 = v4 + apex
                 
-                let p0 = [v1 + apex, v0 + apex, v3 + apex, v4 + apex].path(.green)
-                let p1 = [v3, v4, v6, v5].path(.blue)
+                let p0 = [v1 + apex, v0 + apex, v3 + apex, v4 + apex]
+                let p1 = [v3, v4, v6, v5]
                 
-                guard let peak = Polygon(shape: p0),
-                      let edge = Polygon(shape: p1) else { break }
+                guard let peak = Polygon.surface(p0,
+                                                 .red),
+                      let edge = Polygon.surface(p1,
+                                                 .blue) else { break }
                 
                 polygons.append(contentsOf: [peak,
                                              edge])
                 
-            case .tile: break
+            case .tile:
+                
+                let vertices = tile.vertices.position(.tile)
+                
+                guard let surface = Polygon.surface(vertices.map { $0 + apex },
+                                                    .green) else { break }
+                
+                polygons.append(surface)
             }
         }
         

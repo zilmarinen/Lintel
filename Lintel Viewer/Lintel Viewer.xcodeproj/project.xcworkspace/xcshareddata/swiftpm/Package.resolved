@@ -2,6 +2,15 @@
   "originHash" : "b61e80037835c3d4a52ee4900fec6bbc7a116ac6662d0c5d7ca363515fc49c41",
   "pins" : [
     {
+      "identity" : "deltille",
+      "kind" : "remoteSourceControl",
+      "location" : "git@github.com:zilmarinen/Deltille.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "1e2dfe7b1517ede73c8109c6a40815a2ea436322"
+      }
+    },
+    {
       "identity" : "euclid",
       "kind" : "remoteSourceControl",
       "location" : "git@github.com:nicklockwood/Euclid.git",

@@ -12,19 +12,18 @@ let package = Package(
                  targets: ["Lintel"]),
     ],
     dependencies: [
-//        .package(url: "git@github.com:zilmarinen/Deltille.git",
-//                 branch: "main"),
         .package(path: "../Alluvium"),
-        .package(path: "../Deltille"),
+        .package(path: "../Bivouac"),
+        .package(url: "git@github.com:zilmarinen/Deltille.git",
+                 branch: "main"),
         .package(url: "git@github.com:nicklockwood/Euclid.git",
                  branch: "main"),
-        .package(path: "../Lattice"),
     ],
     targets: [
         .target(name: "Lintel",
                 dependencies: ["Alluvium",
+                               "Bivouac",
                                "Deltille",
-                               "Euclid",
-                               "Lattice"]),
+                               "Euclid"]),
     ]
 )
